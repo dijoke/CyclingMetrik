@@ -1,7 +1,9 @@
-/* Jetons de design — palette de référence du skill data-viz interne (research.md Decision 2).
-   Thème clair uniquement (spec.md Assumptions — mode sombre hors périmètre). */
+/* Jetons de design — palette de référence du skill data-viz interne (research.md Decision 2,
+   feature 002). Thème clair (défaut) + sombre (feature 006, research.md Decision 1). */
 
 :root {
+  color-scheme: light;
+
   /* Surfaces & encre */
   --surface-1: #fcfcfb;
   --page-plane: #f9f9f7;
@@ -13,7 +15,8 @@
   --success-text: #006300;
 
   /* Palette de statut — jamais réutilisée pour autre chose qu'un état (états de charge,
-     statuts de séance/connexion) ; toujours accompagnée d'un label ou d'une icône. */
+     statuts de séance/connexion) ; toujours accompagnée d'un label ou d'une icône.
+     Fixe, jamais thémée (identique en clair et en sombre). */
   --status-good: #0ca30c;
   --status-warning: #fab219;
   --status-serious: #ec835a;
@@ -28,7 +31,41 @@
   --sequential-600: #184f95;
   --sequential-700: #0d366b;
 
+  /* Wash "sélectionné" (nav active) — dérivé de sequential-100/600 */
+  --selection-bg: var(--sequential-100);
+  --selection-text: var(--sequential-600);
+
   /* Rayons & espacements partagés par Card/StatusBadge */
   --radius-card: 10px;
   --radius-badge: 999px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --surface-1: #1a1a19;
+    --page-plane: #0d0d0d;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #898781;
+    --gridline: #2c2c2a;
+    --border: rgba(255, 255, 255, 0.1);
+    --success-text: #0ca30c;
+    --selection-bg: rgba(57, 135, 229, 0.18);
+    --selection-text: #86b6ef;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-1: #1a1a19;
+  --page-plane: #0d0d0d;
+  --text-primary: #ffffff;
+  --text-secondary: #c3c2b7;
+  --text-muted: #898781;
+  --gridline: #2c2c2a;
+  --border: rgba(255, 255, 255, 0.1);
+  --success-text: #0ca30c;
+  --selection-bg: rgba(57, 135, 229, 0.18);
+  --selection-text: #86b6ef;
 }
