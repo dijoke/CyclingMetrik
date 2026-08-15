@@ -1,35 +1,32 @@
 import type { ChargeEntrainement } from "../services/api_client";
+import Card from "./Card";
+import StatusBadge, { type StatusTone } from "./StatusBadge";
 
-const STYLE_TENDANCE: Record<string, { couleur: string; libelle: string }> = {
-  surcharge: { couleur: "#b42318", libelle: "Surcharge — repos recommandé" },
-  recuperation: { couleur: "#1a7f37", libelle: "Récupération — charge basse" },
-  progression: { couleur: "#0b5fff", libelle: "Progression" },
-  stable: { couleur: "#666666", libelle: "Stable" },
+const STYLE_TENDANCE: Record<string, { tone: StatusTone; libelle: string }> = {
+  surcharge: { tone: "critical", libelle: "Surcharge — repos recommandé" },
+  recuperation: { tone: "good", libelle: "Récupération — charge basse" },
+  progression: { tone: "good", libelle: "Progression" },
+  stable: { tone: "neutral", libelle: "Stable" },
 };
 
 export default function ChargeIndicator({ charge }: { charge: ChargeEntrainement }) {
   if (!charge.donnees_suffisantes) {
     return (
-      <div style={{ padding: "1rem", border: "1px dashed #ccc", borderRadius: 8, color: "#666" }}>
+      <Card tone="muted">
         Données insuffisantes : au moins 2 semaines d'historique de séances sont nécessaires pour
         afficher une analyse de charge fiable.
-      </div>
+      </Card>
     );
   }
 
-  const style = STYLE_TENDANCE[charge.tendance ?? "stable"];
+  const { tone, libelle } = STYLE_TENDANCE[charge.tendance ?? "stable"];
 
   return (
-    <div
-      style={{
-        padding: "1rem",
-        borderRadius: 8,
-        border: `2px solid ${style.couleur}`,
-        color: style.couleur,
-        fontWeight: 600,
-      }}
-    >
-      {style.libelle} — ratio charge aiguë/chronique : {charge.ratio_acwr}
-    </div>
+    <Card style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+      <StatusBadge tone={tone} label={libelle} />
+      <span style={{ color: "var(--text-secondary)" }}>
+        ratio charge aiguë/chronique : {charge.ratio_acwr}
+      </span>
+    </Card>
   );
 }
