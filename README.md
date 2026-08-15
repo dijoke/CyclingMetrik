@@ -1,46 +1,99 @@
-# appli-web-coaching
+# CyclingMetrik
 
-Démo Spec-Driven Development (méthode [Spec Kit](https://github.com/github/spec-kit)) pour une application web de coaching cyclisme : import des séances (Garmin Connect / Strava / Nolio), analyse de la charge d'entraînement, conseils de récupération et de nutrition.
+Application web de coaching pour cyclisme de compétition : import des séances (Garmin Connect / Strava / Nolio), analyse de la charge d'entraînement, et conseils personnalisés de récupération et de nutrition.
 
-## Ce qui a été mis en place
+Construite avec la méthode [Spec-Driven Development](https://github.com/github/spec-kit) (Spec Kit) — voir `specs/001-coaching-velo-garmin-strava/` pour la spécification, le plan technique et les tâches.
 
-- `.specify/memory/constitution.md` — les principes du projet (v1.0.0), déjà rédigés (sécurité de l'athlète avant tout, confidentialité des données, MVP incrémental, test-first, simplicité).
-- `.specify/templates/` — les templates officiels Spec Kit (spec, plan, tasks, checklist, constitution).
-- `.specify/scripts/bash/` — les scripts d'automatisation officiels (résolution de chemins, création de feature, setup plan/tasks).
-- `.claude/commands/speckit.*.md` — les slash commands Spec Kit pour Claude Code (`/speckit.constitution`, `/speckit.specify`, `/speckit.plan`, `/speckit.tasks`, `/speckit.implement`).
-- `specs/001-coaching-velo-garmin-strava/spec.md` — la première spécification, déjà rédigée avec 3 user stories priorisées (P1 import, P2 analyse de charge, P3 conseils récup/nutrition), avec son checklist qualité dans `checklists/requirements.md`.
+## Stack
 
-## Une limitation technique à savoir
+- **Backend** : Python 3.12, FastAPI, SQLAlchemy 2.0 + Alembic, PostgreSQL, APScheduler (jobs planifiés), httpx (connecteurs OAuth Garmin/Strava/Nolio)
+- **Frontend** : React 18 + TypeScript, Vite, React Query, Recharts
 
-L'environnement sandboxé de cette session bloque les installations réseau (pip/npm/git clone) vers GitHub et PyPI — impossible d'installer le vrai CLI `specify` ici. À la place, j'ai récupéré les templates et scripts **officiels** du dépôt `github/spec-kit` via HTTP et reconstruit à la main un scaffold identique à celui que produit `specify init --ai claude`. Le contenu est fidèle à l'original, mais je n'ai pas pu exécuter `specify` lui-même pour le générer automatiquement.
+## Lancer le backend
 
-Le dossier `.git` a aussi posé problème (le point de montage entre ce sandbox et ton Mac ne permet pas certaines opérations git). Si tu veux un historique git propre, le plus simple est de supprimer `.git` depuis le Finder/Terminal sur ton Mac puis de relancer `git init` localement.
+```bash
+cd backend
+uv venv --python 3.12
+source .venv/bin/activate
+uv pip install -e ".[dev]"
 
-## Pour continuer avec Claude Code (recommandé)
+cp .env.example .env
+# Renseigner TOKEN_ENCRYPTION_KEY (python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
+# et DATABASE_URL, puis les identifiants OAuth Strava/Garmin/Nolio si disponibles.
 
-1. Installe le vrai CLI si tu veux garder le projet à jour ou ajouter d'autres agents/extensions :
-   ```bash
-   uv tool install specify-cli --from git+https://github.com/github/spec-kit.git
-   ```
-2. Ouvre ce dossier avec Claude Code (`claude` dans le terminal, depuis `appli-web-coaching/`).
-3. Les commandes `/speckit.*` sont déjà disponibles (dossier `.claude/commands/`). Prochaine étape logique :
-   ```
-   /speckit.clarify
-   ```
-   pour trancher les 2 points encore ouverts dans le spec (durée de rétention des données, cadre réglementaire — RGPD ?), puis :
-   ```
-   /speckit.plan
-   /speckit.tasks
-   /speckit.implement
-   ```
+alembic upgrade head
+uvicorn src.main:app --reload
+```
+
+L'API est servie sur `http://localhost:8000` (documentation interactive sur `/docs`).
+
+### Tests backend
+
+```bash
+cd backend
+source .venv/bin/activate
+# Nécessite une base PostgreSQL de test accessible via DATABASE_URL (voir tests/conftest.py)
+pytest
+ruff check src tests
+```
+
+## Lancer le frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+L'application est servie sur `http://localhost:5173` (proxy `/api` vers le backend sur le port 8000).
+
+```bash
+npm run lint   # eslint
+npm run build  # type-check + build de production
+```
+
+## Structure du projet
+
+```text
+backend/
+  src/
+    models/          # Athlete, Séance, ChargeEntrainement, Recommandation, ConnexionPlateforme
+    integrations/     # connecteurs Garmin Connect / Strava / Nolio (interface commune)
+    services/
+      training_load/    # calcul de charge (ACWR), tendance
+      recommendations/  # règles de récupération + nutrition, garde-fou "données insuffisantes"
+    api/               # routes FastAPI
+    jobs/              # sync périodique, recalcul de charge, génération de recommandations, purge de rétention
+  tests/
+    contract/          # fixtures rejouables par plateforme source
+    integration/        # scénarios par user story
+    unit/               # calcul de charge, moteur de recommandations
+
+frontend/
+  src/
+    pages/       # Dashboard, HistoriqueSeances, Recommandations, Connexions, Profil
+    components/  # ChargeIndicator, ...
+    services/    # client API
+```
+
+## Documentation Spec Kit
+
+- `specs/001-coaching-velo-garmin-strava/spec.md` — spécification (user stories, exigences, critères de succès)
+- `specs/001-coaching-velo-garmin-strava/plan.md` — plan technique et Constitution Check
+- `specs/001-coaching-velo-garmin-strava/research.md` — décisions techniques (research.md)
+- `specs/001-coaching-velo-garmin-strava/data-model.md` — modèle de données
+- `specs/001-coaching-velo-garmin-strava/contracts/` — contrat API (OpenAPI) et interface des connecteurs
+- `specs/001-coaching-velo-garmin-strava/quickstart.md` — scénarios d'intégration par user story
+- `specs/001-coaching-velo-garmin-strava/tasks.md` — découpage en tâches (`/speckit.implement`)
 
 ## Workflow Spec Kit
 
 ```
-/speckit.constitution   → principes du projet (déjà fait, v1.0.0)
-/speckit.specify        → décrire une feature (déjà fait pour la v1)
-/speckit.clarify        → lever les [NEEDS CLARIFICATION] restants
+/speckit.constitution   → principes du projet
+/speckit.specify        → décrire une feature
 /speckit.plan           → choix techniques (stack, architecture)
 /speckit.tasks          → découpage en tâches actionnables
 /speckit.implement      → exécution des tâches
 ```
+
+Voir `CLAUDE.md` pour le workflow git (branches par feature, cadence de commit/push).

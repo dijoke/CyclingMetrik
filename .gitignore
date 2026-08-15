@@ -2,5 +2,12 @@
 node_modules/
 .env
 .env.*
+!.env.example
 __pycache__/
 *.pyc
+.venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+dist/
+*.tsbuildinfo

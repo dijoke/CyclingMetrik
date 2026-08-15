@@ -1,0 +1,346 @@
+openapi: 3.0.3
+info:
+  title: Coaching vélo connecté — API
+  version: 0.1.0
+  description: >
+    Contrat d'API pour l'import de séances (Garmin Connect / Strava / Nolio),
+    l'analyse de charge d'entraînement, et les recommandations de récupération
+    et nutrition. Couvre US1, US2, US3 du spec.
+
+paths:
+  /api/connexions:
+    get:
+      summary: Lister les connexions plateforme de l'athlète (US1, FR-001, FR-009)
+      responses:
+        "200":
+          description: Liste des connexions avec leur statut
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConnexionPlateforme"
+
+  /api/connexions/{plateforme}/autoriser:
+    post:
+      summary: Démarrer le flux d'autorisation OAuth pour une plateforme (FR-001)
+      parameters:
+        - name: plateforme
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/Plateforme"
+      responses:
+        "200":
+          description: URL de redirection vers le flux d'autorisation de la plateforme
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [url_autorisation]
+                properties:
+                  url_autorisation:
+                    type: string
+                    format: uri
+
+  /api/connexions/{plateforme}/callback:
+    post:
+      summary: Callback OAuth — finalise la connexion après autorisation (FR-001)
+      parameters:
+        - name: plateforme
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/Plateforme"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+      responses:
+        "201":
+          description: Connexion établie, import initial déclenché (SC-001)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConnexionPlateforme"
+
+  /api/connexions/{plateforme}:
+    delete:
+      summary: Déconnecter une plateforme (révoque les tokens localement)
+      parameters:
+        - name: plateforme
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/Plateforme"
+      responses:
+        "204":
+          description: Connexion révoquée
+
+  /api/seances:
+    get:
+      summary: Historique des séances importées, classées chronologiquement (FR-003)
+      parameters:
+        - name: depuis
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filtrer les séances à partir de cette date
+        - name: statut_donnees
+          in: query
+          schema:
+            $ref: "#/components/schemas/StatutDonneesSeance"
+      responses:
+        "200":
+          description: Liste des séances, plus récentes en premier
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Seance"
+
+  /api/dashboard/charge:
+    get:
+      summary: Charge d'entraînement courante et tendance sur 4 semaines (US2, FR-004, FR-005)
+      responses:
+        "200":
+          description: >
+            Instantané de charge. `donnees_suffisantes=false` si historique < 2 semaines
+            (Acceptance Scenario 3 de US2) — le client DOIT alors afficher un message
+            d'insuffisance de données plutôt qu'une analyse.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChargeEntrainement"
+
+  /api/recommandations:
+    get:
+      summary: Recommandations de récupération/nutrition récentes (US3, FR-006, FR-007)
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [recuperation, nutrition]
+      responses:
+        "200":
+          description: >
+            Liste de recommandations. Une entrée avec `statut=donnees_insuffisantes`
+            DOIT être affichée comme telle par le client, jamais masquée ou remplacée
+            par une valeur par défaut (Principe I, FR-011).
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Recommandation"
+
+  /api/athlete/profil:
+    get:
+      summary: Consulter le profil athlète (FR-008)
+      responses:
+        "200":
+          description: Profil courant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Athlete"
+    put:
+      summary: Modifier le profil athlète (poids, taille, objectifs, contraintes) (FR-008)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AthleteProfilInput"
+      responses:
+        "200":
+          description: Profil mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Athlete"
+
+  /api/athlete/export:
+    get:
+      summary: Exporter toutes les données de l'athlète (RGPD, FR-013, Principe II)
+      responses:
+        "200":
+          description: Export JSON complet (profil, séances, connexions, recommandations)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Archive JSON contenant l'intégralité des données de l'athlète
+
+  /api/athlete:
+    delete:
+      summary: Supprimer définitivement le compte et toutes les données associées (RGPD, FR-013)
+      responses:
+        "204":
+          description: Compte et données supprimés, tokens OAuth révoqués
+
+components:
+  schemas:
+    Plateforme:
+      type: string
+      enum: [garmin_connect, strava, nolio]
+
+    StatutConnexion:
+      type: string
+      enum: [actif, expire, revoque]
+
+    StatutDonneesSeance:
+      type: string
+      enum: [valide, aberrant, doublon_probable]
+
+    ConnexionPlateforme:
+      type: object
+      required: [id, plateforme, statut]
+      properties:
+        id:
+          type: string
+          format: uuid
+        plateforme:
+          $ref: "#/components/schemas/Plateforme"
+        statut:
+          $ref: "#/components/schemas/StatutConnexion"
+        date_derniere_synchronisation:
+          type: string
+          format: date-time
+          nullable: true
+        date_connexion:
+          type: string
+          format: date-time
+
+    Seance:
+      type: object
+      required: [id, date_debut, duree_secondes, statut_donnees]
+      properties:
+        id:
+          type: string
+          format: uuid
+        plateforme:
+          $ref: "#/components/schemas/Plateforme"
+        date_debut:
+          type: string
+          format: date-time
+        duree_secondes:
+          type: integer
+        distance_metres:
+          type: number
+          nullable: true
+        puissance_moyenne_watts:
+          type: number
+          nullable: true
+        frequence_cardiaque_moyenne:
+          type: integer
+          nullable: true
+        denivele_metres:
+          type: number
+          nullable: true
+        statut_donnees:
+          $ref: "#/components/schemas/StatutDonneesSeance"
+        seance_doublon_de_id:
+          type: string
+          format: uuid
+          nullable: true
+
+    ChargeEntrainement:
+      type: object
+      required: [date_calcul, donnees_suffisantes]
+      properties:
+        date_calcul:
+          type: string
+          format: date-time
+        charge_aigue_7j:
+          type: number
+          nullable: true
+        charge_chronique_28j:
+          type: number
+          nullable: true
+        ratio_acwr:
+          type: number
+          nullable: true
+        tendance:
+          type: string
+          enum: [progression, surcharge, recuperation, stable]
+          nullable: true
+        donnees_suffisantes:
+          type: boolean
+
+    Recommandation:
+      type: object
+      required: [id, type, date_generation, statut]
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [recuperation, nutrition]
+        date_generation:
+          type: string
+          format: date-time
+        statut:
+          type: string
+          enum: [disponible, donnees_insuffisantes]
+        contenu:
+          type: object
+          nullable: true
+          description: Structure dépendante du type — voir data-model.md
+        motif_donnees_insuffisantes:
+          type: string
+          nullable: true
+        justification:
+          type: object
+          nullable: true
+          description: Références aux données sources ayant motivé la recommandation
+
+    Athlete:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        poids_kg:
+          type: number
+          nullable: true
+        taille_cm:
+          type: integer
+          nullable: true
+        objectifs:
+          type: string
+          nullable: true
+        contraintes_alimentaires:
+          type: array
+          items:
+            type: string
+
+    AthleteProfilInput:
+      type: object
+      properties:
+        poids_kg:
+          type: number
+          nullable: true
+        taille_cm:
+          type: integer
+          nullable: true
+        objectifs:
+          type: string
+          nullable: true
+        contraintes_alimentaires:
+          type: array
+          items:
+            type: string
