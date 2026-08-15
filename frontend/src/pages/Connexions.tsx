@@ -1,5 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import Card from "../components/Card";
+import StatusBadge, { type StatusTone } from "../components/StatusBadge";
 import { type Plateforme, api } from "../services/api_client";
 
 const PLATEFORMES: { id: Plateforme; label: string }[] = [
@@ -8,10 +10,10 @@ const PLATEFORMES: { id: Plateforme; label: string }[] = [
   { id: "nolio", label: "Nolio" },
 ];
 
-const LABEL_STATUT: Record<string, string> = {
-  actif: "Connecté",
-  expire: "Expiré — reconnexion nécessaire",
-  revoque: "Déconnecté",
+const STYLE_STATUT: Record<string, { tone: StatusTone; label: string }> = {
+  actif: { tone: "good", label: "Connecté" },
+  expire: { tone: "warning", label: "Expiré — reconnexion nécessaire" },
+  revoque: { tone: "neutral", label: "Déconnecté" },
 };
 
 export default function Connexions() {
@@ -43,34 +45,19 @@ export default function Connexions() {
 
   return (
     <section>
-      <h2>Connexions plateformes</h2>
-      <ul
-        style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "1rem" }}
-      >
+      <h2 style={{ color: "var(--text-primary)" }}>Connexions plateformes</h2>
+      <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
         {PLATEFORMES.map((plateforme) => {
           const connexion = connexionPour(plateforme.id);
+          const style = connexion ? STYLE_STATUT[connexion.statut] : { tone: "neutral" as const, label: "Non connecté" };
           return (
-            <li
+            <Card
               key={plateforme.id}
-              style={{
-                border: "1px solid #e2e2e2",
-                borderRadius: 8,
-                padding: "1rem",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
+              style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
             >
-              <div>
-                <strong>{plateforme.label}</strong>
-                <div
-                  style={{
-                    fontSize: "0.9rem",
-                    color: connexion?.statut === "actif" ? "#1a7f37" : "#b42318",
-                  }}
-                >
-                  {connexion ? LABEL_STATUT[connexion.statut] : "Non connecté"}
-                </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                <strong style={{ color: "var(--text-primary)" }}>{plateforme.label}</strong>
+                <StatusBadge tone={style.tone} label={style.label} />
               </div>
               {connexion && connexion.statut === "actif" ? (
                 <button onClick={() => deconnecter(plateforme.id)}>Déconnecter</button>
@@ -79,10 +66,10 @@ export default function Connexions() {
                   {connexion ? "Reconnecter" : "Connecter"}
                 </button>
               )}
-            </li>
+            </Card>
           );
         })}
-      </ul>
+      </div>
     </section>
   );
 }
