@@ -16,6 +16,7 @@ from src.integrations.base import (
 AUTORISATION_URL = "https://www.strava.com/oauth/authorize"
 TOKEN_URL = "https://www.strava.com/oauth/token"
 ACTIVITES_URL = "https://www.strava.com/api/v3/athlete/activities"
+STREAMS_URL_TEMPLATE = "https://www.strava.com/api/v3/activities/{id_activite}/streams"
 DEAUTHORIZE_URL = "https://www.strava.com/oauth/deauthorize"
 
 PAGE_SIZE = 100
@@ -73,7 +74,7 @@ class StravaConnecteur:
             if depuis is not None:
                 params["after"] = int(depuis.timestamp())
 
-            reponse = self._get_avec_retry(tokens, params)
+            reponse = self._get_avec_retry(tokens, ACTIVITES_URL, params)
             page_activites = reponse.json()
             activites.extend(page_activites)
 
@@ -83,15 +84,35 @@ class StravaConnecteur:
 
         return [self._seance_depuis_activite(a) for a in activites]
 
-    def _get_avec_retry(self, tokens: TokensOAuth, params: dict) -> httpx.Response:
+    def recuperer_flux_puissance(self, tokens: TokensOAuth, id_activite: str) -> list[int] | None:
+        """Flux de puissance seconde par seconde d'une activité (research.md Decision 3).
+        `None` si l'activité n'a pas de capteur de puissance (clé absente de la réponse) ou si
+        le flux n'est plus disponible côté Strava (404 — activité supprimée/rendue privée
+        entre-temps, FR-008 : ne pas retenter indéfiniment)."""
+        url = STREAMS_URL_TEMPLATE.format(id_activite=id_activite)
+        reponse = self._get_avec_retry(
+            tokens, url, {"keys": "watts", "key_by_type": "true"}, codes_absence={404}
+        )
+        if reponse.status_code == 404:
+            return None
+        return reponse.json().get("watts", {}).get("data")
+
+    def _get_avec_retry(
+        self,
+        tokens: TokensOAuth,
+        url: str,
+        params: dict,
+        codes_absence: frozenset[int] = frozenset(),
+    ) -> httpx.Response:
         """Retente automatiquement sur une limite de débit (429) ou une erreur transport
         transitoire (timeout, connexion) plutôt que d'échouer silencieusement/partiellement
         (FR-003) ; dégrade en `PlateformeIndisponibleError` après `RATE_LIMIT_TENTATIVES_MAX`
-        tentatives (research.md Decision 3)."""
+        tentatives (research.md Decision 3). `codes_absence` : codes traités comme une réponse
+        valide "sans donnée" plutôt qu'une erreur (ex. 404 sur un flux de puissance)."""
         for tentative in range(RATE_LIMIT_TENTATIVES_MAX):
             try:
                 reponse = httpx.get(
-                    ACTIVITES_URL,
+                    url,
                     headers={"Authorization": f"Bearer {tokens.access_token}"},
                     params=params,
                     timeout=REQUEST_TIMEOUT_SECONDES,
@@ -108,6 +129,8 @@ class StravaConnecteur:
                 time.sleep(RATE_LIMIT_ATTENTE_SECONDES)
                 continue
 
+            if reponse.status_code in codes_absence:
+                return reponse
             if reponse.status_code == 401:
                 raise TokenInvalideError("Token Strava refusé")
             if reponse.status_code >= 500:
