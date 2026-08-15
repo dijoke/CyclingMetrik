@@ -146,3 +146,29 @@ def test_recuperer_seances_retente_sur_timeout_transitoire(monkeypatch):
 
     assert seances == []
     assert appels["n"] == 2
+
+
+def test_recuperer_flux_puissance_renvoie_les_watts(monkeypatch):
+    donnees = {"watts": {"data": [100, 150, 200], "series_type": "time"}}
+    monkeypatch.setattr(httpx, "get", lambda *a, **k: _reponse(200, donnees))
+
+    flux = StravaConnecteur().recuperer_flux_puissance(TokensOAuth("t", None, None), "12345")
+
+    assert flux == [100, 150, 200]
+
+
+def test_recuperer_flux_puissance_absent_si_pas_de_capteur(monkeypatch):
+    donnees = {"time": {"data": [0, 1, 2], "series_type": "time"}}  # pas de clé "watts"
+    monkeypatch.setattr(httpx, "get", lambda *a, **k: _reponse(200, donnees))
+
+    flux = StravaConnecteur().recuperer_flux_puissance(TokensOAuth("t", None, None), "12345")
+
+    assert flux is None
+
+
+def test_recuperer_flux_puissance_absent_si_404(monkeypatch):
+    monkeypatch.setattr(httpx, "get", lambda *a, **k: _reponse(404, {}))
+
+    flux = StravaConnecteur().recuperer_flux_puissance(TokensOAuth("t", None, None), "12345")
+
+    assert flux is None

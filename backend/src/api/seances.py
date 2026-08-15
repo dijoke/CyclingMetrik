@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import uuid
 from datetime import date
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from src.api.schemas import SeanceOut
@@ -26,3 +27,12 @@ def lister_seances(
     if statut_donnees is not None:
         requete = requete.filter(Seance.statut_donnees == statut_donnees)
     return requete.order_by(Seance.date_debut.desc()).all()
+
+
+@router.get("/{id}", response_model=SeanceOut)
+def detail_seance(id: uuid.UUID, db: Session = Depends(get_db)):
+    athlete = obtenir_ou_creer_athlete(db)
+    seance = db.query(Seance).filter(Seance.id == id, Seance.athlete_id == athlete.id).first()
+    if seance is None:
+        raise HTTPException(status_code=404, detail="Séance introuvable")
+    return seance
