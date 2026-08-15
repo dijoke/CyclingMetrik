@@ -1,0 +1,43 @@
+# Nouvel endpoint introduit par cette feature. GET /api/seances (liste, spec 001) voit son
+# schéma de réponse étendu avec les 5 champs puissance_max_* (data-model.md) mais n'est pas
+# autrement modifié.
+
+paths:
+  /api/seances/{id}:
+    get:
+      summary: Détail complet d'une séance, y compris ses records de puissance (US2/US3)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeanceOut"
+        "404":
+          description: Séance inexistante ou n'appartenant pas à l'athlète authentifié (Acceptance Scenario 3, US2)
+
+components:
+  schemas:
+    SeanceOut:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        date_debut: { type: string, format: date-time }
+        duree_secondes: { type: integer }
+        distance_metres: { type: number, nullable: true }
+        puissance_moyenne_watts: { type: number, nullable: true }
+        frequence_cardiaque_moyenne: { type: integer, nullable: true }
+        denivele_metres: { type: number, nullable: true }
+        statut_donnees: { type: string, enum: [valide, aberrant, doublon_probable] }
+        seance_doublon_de_id: { type: string, format: uuid, nullable: true }
+        puissance_max_1min: { type: number, nullable: true }
+        puissance_max_3min: { type: number, nullable: true }
+        puissance_max_5min: { type: number, nullable: true }
+        puissance_max_10min: { type: number, nullable: true }
+        puissance_max_20min: { type: number, nullable: true }
