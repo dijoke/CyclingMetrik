@@ -1,0 +1,5 @@
+{
+  "access_token": "garmin-access-abc",
+  "refresh_token": "garmin-refresh-def",
+  "expires_in": 3600
+}

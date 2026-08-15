@@ -1,0 +1,11 @@
+[
+  {
+    "summaryId": "garmin-abc-001",
+    "startTimeInSeconds": 1786780800,
+    "durationInSeconds": 4800,
+    "distanceInMeters": 38000.0,
+    "averagePowerInWatts": 195.0,
+    "averageHeartRateInBeatsPerMinute": 140,
+    "totalElevationGainInMeters": 480.0
+  }
+]

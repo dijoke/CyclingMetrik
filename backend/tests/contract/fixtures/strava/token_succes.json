@@ -1,0 +1,5 @@
+{
+  "access_token": "strava-access-abc",
+  "refresh_token": "strava-refresh-def",
+  "expires_at": 1786800000
+}

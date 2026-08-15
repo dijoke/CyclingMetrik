@@ -1,0 +1,20 @@
+[
+  {
+    "id": 111222333,
+    "start_date": "2026-08-10T07:15:00Z",
+    "elapsed_time": 5400,
+    "distance": 45000.0,
+    "average_watts": 210.5,
+    "average_heartrate": 148.2,
+    "total_elevation_gain": 620.0
+  },
+  {
+    "id": 111222334,
+    "start_date": "2026-08-12T06:30:00Z",
+    "elapsed_time": 3600,
+    "distance": 30000.0,
+    "average_watts": null,
+    "average_heartrate": 132.0,
+    "total_elevation_gain": 300.0
+  }
+]

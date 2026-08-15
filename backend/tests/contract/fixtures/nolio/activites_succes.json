@@ -1,0 +1,13 @@
+{
+  "activities": [
+    {
+      "id": "nolio-1",
+      "startedAt": "2026-08-11T08:00:00+00:00",
+      "durationSeconds": 5000,
+      "distanceMeters": 42000.0,
+      "avgPowerWatts": 205.0,
+      "avgHeartRate": 145,
+      "elevationGainMeters": 510.0
+    }
+  ]
+}
