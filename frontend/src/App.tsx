@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import HistoriqueSeances from "./pages/HistoriqueSeances";
 import Profil from "./pages/Profil";
 import Recommandations from "./pages/Recommandations";
+import SeanceDetail from "./pages/SeanceDetail";
 import Statistiques from "./pages/Statistiques";
 
 const liens = [
@@ -81,6 +82,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/seances" element={<HistoriqueSeances />} />
+            <Route path="/seances/:id" element={<SeanceDetail />} />
             <Route path="/statistiques" element={<Statistiques />} />
             <Route path="/recommandations" element={<Recommandations />} />
             <Route path="/connexions" element={<Connexions />} />

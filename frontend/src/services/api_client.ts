@@ -37,6 +37,11 @@ export interface Seance {
   denivele_metres: number | null;
   statut_donnees: StatutDonneesSeance;
   seance_doublon_de_id: string | null;
+  puissance_max_1min: number | null;
+  puissance_max_3min: number | null;
+  puissance_max_5min: number | null;
+  puissance_max_10min: number | null;
+  puissance_max_20min: number | null;
 }
 
 export interface PointChargeHistorique {
@@ -134,6 +139,7 @@ export const api = {
   },
   seances: {
     lister: () => request<Seance[]>("/seances"),
+    detail: (id: string) => request<Seance>(`/seances/${id}`),
   },
   dashboard: {
     charge: () => request<ChargeEntrainement>("/dashboard/charge"),

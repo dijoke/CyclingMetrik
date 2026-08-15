@@ -62,3 +62,9 @@ class Seance(Base):
     date_import: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC), nullable=False
     )
+    puissance_max_1min: Mapped[float | None] = mapped_column(Numeric(6, 2), nullable=True)
+    puissance_max_3min: Mapped[float | None] = mapped_column(Numeric(6, 2), nullable=True)
+    puissance_max_5min: Mapped[float | None] = mapped_column(Numeric(6, 2), nullable=True)
+    puissance_max_10min: Mapped[float | None] = mapped_column(Numeric(6, 2), nullable=True)
+    puissance_max_20min: Mapped[float | None] = mapped_column(Numeric(6, 2), nullable=True)
+    flux_puissance_traite_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

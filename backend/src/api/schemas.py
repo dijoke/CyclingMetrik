@@ -32,6 +32,11 @@ class SeanceOut(BaseModel):
     denivele_metres: float | None
     statut_donnees: StatutDonneesSeance
     seance_doublon_de_id: uuid.UUID | None
+    puissance_max_1min: float | None
+    puissance_max_3min: float | None
+    puissance_max_5min: float | None
+    puissance_max_10min: float | None
+    puissance_max_20min: float | None
 
 
 class PointChargeHistoriqueOut(BaseModel):
