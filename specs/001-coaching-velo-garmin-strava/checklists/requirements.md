@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain (2 remain: FR-012 rétention des données, FR-013 cadre réglementaire — voir Notes)
+- [X] No [NEEDS CLARIFICATION] markers remain (FR-012 et FR-013 résolus lors de `/speckit.plan` — voir Notes)
 - [X] Requirements are testable and unambiguous
 - [X] Success criteria are measurable
 - [X] Success criteria are technology-agnostic (no implementation details)
@@ -31,5 +31,5 @@
 
 ## Notes
 
-- 2 marqueurs [NEEDS CLARIFICATION] restent volontairement dans FR-012 (durée de rétention des données) et FR-013 (cadre réglementaire de conformité). Ce sont des décisions produit/juridique à trancher avec l'utilisateur avant `/speckit.plan` — recommandé de lancer `/speckit.clarify` ou de répondre directement dans le spec.
-- Tous les autres items passent : items incomplets nécessitent une mise à jour du spec avant `/speckit.clarify` ou `/speckit.plan`.
+- Les 2 marqueurs [NEEDS CLARIFICATION] (FR-012 durée de rétention, FR-013 cadre réglementaire) ont été résolus par l'utilisateur au démarrage de `/speckit.plan` : rétention de 3 mois glissants (FR-012), RGPD France/UE uniquement (FR-013). Le spec a été mis à jour en conséquence.
+- Tous les items passent désormais. Checklist validée pour l'implémentation.
