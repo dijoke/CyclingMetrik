@@ -2,7 +2,7 @@ import type { ChargeEntrainement } from "../services/api_client";
 import Card from "./Card";
 import StatusBadge, { type StatusTone } from "./StatusBadge";
 
-const STYLE_TENDANCE: Record<string, { tone: StatusTone; libelle: string }> = {
+export const STYLE_TENDANCE: Record<string, { tone: StatusTone; libelle: string }> = {
   surcharge: { tone: "critical", libelle: "Surcharge — repos recommandé" },
   recuperation: { tone: "good", libelle: "Récupération — charge basse" },
   progression: { tone: "good", libelle: "Progression" },
