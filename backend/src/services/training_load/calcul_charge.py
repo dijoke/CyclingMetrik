@@ -27,6 +27,13 @@ class ChargeResultat:
     donnees_suffisantes: bool
 
 
+@dataclass
+class PointHistorique:
+    date: datetime
+    charge_aigue_7j: float | None
+    charge_chronique_28j: float | None
+
+
 def _charge_seance(seance: Seance) -> float:
     """Charge par séance : durée (heures) pondérée par l'intensité.
 
@@ -52,8 +59,10 @@ def _tendance(ratio: float, charge_chronique_debut: float, charge_chronique_fin:
     return "stable"
 
 
-def calculer_charge(db: Session, athlete_id: uuid.UUID) -> ChargeResultat:
-    maintenant = datetime.now(UTC)
+def calculer_charge(
+    db: Session, athlete_id: uuid.UUID, maintenant: datetime | None = None
+) -> ChargeResultat:
+    maintenant = maintenant or datetime.now(UTC)
     premiere_seance = (
         db.query(Seance)
         .filter(Seance.athlete_id == athlete_id, Seance.statut_donnees == StatutDonneesSeance.VALIDE)
@@ -100,3 +109,33 @@ def calculer_charge(db: Session, athlete_id: uuid.UUID) -> ChargeResultat:
         tendance=_tendance(ratio, charge_chronique_debut, charge_chronique),
         donnees_suffisantes=True,
     )
+
+
+HISTORIQUE_NB_SEMAINES = 8
+
+
+def historique_charge(
+    db: Session, athlete_id: uuid.UUID, semaines: int = HISTORIQUE_NB_SEMAINES
+) -> list[PointHistorique]:
+    """Série temporelle de charge sur les `semaines` dernières semaines (feature 002, FR-001).
+
+    Réutilise `calculer_charge` à des dates de référence hebdomadaires successives plutôt que
+    de dupliquer la logique de charge (Principe IV, research.md Decision 4). Retourne une liste
+    vide si l'historique est insuffisant pour un calcul fiable (cohérent avec `donnees_suffisantes`).
+    """
+    maintenant = datetime.now(UTC)
+    if not calculer_charge(db, athlete_id, maintenant).donnees_suffisantes:
+        return []
+
+    points = []
+    for semaines_avant in range(semaines - 1, -1, -1):
+        date_reference = maintenant - timedelta(weeks=semaines_avant)
+        resultat = calculer_charge(db, athlete_id, date_reference)
+        points.append(
+            PointHistorique(
+                date=date_reference,
+                charge_aigue_7j=resultat.charge_aigue_7j,
+                charge_chronique_28j=resultat.charge_chronique_28j,
+            )
+        )
+    return points
