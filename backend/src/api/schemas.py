@@ -34,6 +34,14 @@ class SeanceOut(BaseModel):
     seance_doublon_de_id: uuid.UUID | None
 
 
+class PointChargeHistoriqueOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    date: datetime
+    charge_aigue_7j: float | None
+    charge_chronique_28j: float | None
+
+
 class ChargeEntrainementOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -43,6 +51,7 @@ class ChargeEntrainementOut(BaseModel):
     ratio_acwr: float | None
     tendance: str | None
     donnees_suffisantes: bool
+    historique: list[PointChargeHistoriqueOut]
 
 
 class RecommandationOut(BaseModel):

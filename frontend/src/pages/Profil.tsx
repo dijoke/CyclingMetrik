@@ -1,6 +1,23 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { type FormEvent, useState } from "react";
+import { type CSSProperties, type FormEvent, useState } from "react";
+import Card from "../components/Card";
 import { api } from "../services/api_client";
+
+const styleLabel: CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  gap: "0.35rem",
+  color: "var(--text-secondary)",
+  fontSize: "0.9rem",
+};
+
+const styleInput: CSSProperties = {
+  padding: "0.5rem",
+  border: "1px solid var(--border)",
+  borderRadius: 6,
+  font: "inherit",
+  color: "var(--text-primary)",
+};
 
 export default function Profil() {
   const queryClient = useQueryClient();
@@ -51,37 +68,40 @@ export default function Profil() {
 
   return (
     <section>
-      <h2>Profil athlète</h2>
-      <form
-        onSubmit={enregistrer}
-        style={{ display: "flex", flexDirection: "column", gap: "1rem", maxWidth: 360 }}
-      >
-        <label>
-          Poids (kg)
-          <input type="number" step="0.1" name="poids_kg" defaultValue={athlete.poids_kg ?? ""} />
-        </label>
-        <label>
-          Taille (cm)
-          <input type="number" name="taille_cm" defaultValue={athlete.taille_cm ?? ""} />
-        </label>
-        <label>
-          Objectifs
-          <textarea name="objectifs" defaultValue={athlete.objectifs ?? ""} />
-        </label>
-        <button type="submit" disabled={enregistrement}>
-          Enregistrer
-        </button>
-      </form>
+      <h2 style={{ color: "var(--text-primary)" }}>Profil athlète</h2>
+      <Card style={{ maxWidth: 400 }}>
+        <form onSubmit={enregistrer} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <label style={styleLabel}>
+            Poids (kg)
+            <input
+              style={styleInput}
+              type="number"
+              step="0.1"
+              name="poids_kg"
+              defaultValue={athlete.poids_kg ?? ""}
+            />
+          </label>
+          <label style={styleLabel}>
+            Taille (cm)
+            <input style={styleInput} type="number" name="taille_cm" defaultValue={athlete.taille_cm ?? ""} />
+          </label>
+          <label style={styleLabel}>
+            Objectifs
+            <textarea style={styleInput} name="objectifs" defaultValue={athlete.objectifs ?? ""} />
+          </label>
+          <button type="submit" disabled={enregistrement}>
+            Enregistrer
+          </button>
+        </form>
+      </Card>
 
-      <hr style={{ margin: "2rem 0" }} />
-
-      <h3>Vos données (RGPD)</h3>
-      <div style={{ display: "flex", gap: "1rem" }}>
+      <h3 style={{ marginTop: "2rem", color: "var(--text-primary)" }}>Vos données (RGPD)</h3>
+      <Card style={{ display: "flex", gap: "1rem", maxWidth: 400 }}>
         <button onClick={exporterDonnees}>Exporter mes données</button>
-        <button style={{ color: "#b42318" }} onClick={supprimerCompte}>
+        <button style={{ color: "var(--status-critical)" }} onClick={supprimerCompte}>
           Supprimer mon compte
         </button>
-      </div>
+      </Card>
     </section>
   );
 }

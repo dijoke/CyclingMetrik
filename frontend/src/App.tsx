@@ -16,16 +16,33 @@ const liens = [
 export default function App() {
   return (
     <Router>
-      <div style={{ display: "flex", minHeight: "100vh", fontFamily: "system-ui, sans-serif" }}>
-        <nav style={{ width: 220, borderRight: "1px solid #e2e2e2", padding: "1.5rem 1rem" }}>
-          <h1 style={{ fontSize: "1.1rem", marginBottom: "1.5rem" }}>Coaching vélo</h1>
+      <div
+        style={{
+          display: "flex",
+          minHeight: "100vh",
+          fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif",
+          background: "var(--page-plane)",
+          color: "var(--text-primary)",
+        }}
+      >
+        <nav
+          style={{
+            width: 220,
+            borderRight: "1px solid var(--border)",
+            padding: "1.5rem 1rem",
+            background: "var(--surface-1)",
+          }}
+        >
+          <h1 style={{ fontSize: "1.1rem", marginBottom: "1.5rem", color: "var(--text-primary)" }}>
+            Coaching vélo
+          </h1>
           <ul
             style={{
               listStyle: "none",
               padding: 0,
               display: "flex",
               flexDirection: "column",
-              gap: "0.5rem",
+              gap: "0.25rem",
             }}
           >
             {liens.map((lien) => (
@@ -34,8 +51,12 @@ export default function App() {
                   to={lien.to}
                   end={lien.to === "/"}
                   style={({ isActive }) => ({
+                    display: "block",
+                    padding: "0.5rem 0.6rem",
+                    borderRadius: 6,
                     textDecoration: "none",
-                    color: isActive ? "#0b5fff" : "#333",
+                    color: isActive ? "var(--sequential-600)" : "var(--text-secondary)",
+                    background: isActive ? "var(--sequential-100)" : "transparent",
                     fontWeight: isActive ? 600 : 400,
                   })}
                 >

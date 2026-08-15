@@ -39,6 +39,12 @@ export interface Seance {
   seance_doublon_de_id: string | null;
 }
 
+export interface PointChargeHistorique {
+  date: string;
+  charge_aigue_7j: number | null;
+  charge_chronique_28j: number | null;
+}
+
 export interface ChargeEntrainement {
   date_calcul: string;
   charge_aigue_7j: number | null;
@@ -46,6 +52,7 @@ export interface ChargeEntrainement {
   ratio_acwr: number | null;
   tendance: "progression" | "surcharge" | "recuperation" | "stable" | null;
   donnees_suffisantes: boolean;
+  historique: PointChargeHistorique[];
 }
 
 export interface Recommandation {

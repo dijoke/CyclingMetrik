@@ -1,0 +1,50 @@
+# Extension du contrat API de la feature 001 (specs/001-.../contracts/api.openapi.yaml)
+# Cette feature n'introduit aucun nouvel endpoint : elle étend la réponse de
+# GET /api/dashboard/charge avec un champ `historique` (voir data-model.md, Decision 4 de research.md).
+# Aucun autre endpoint de 001 n'est modifié.
+
+paths:
+  /api/dashboard/charge:
+    get:
+      summary: >
+        Charge d'entraînement courante, tendance sur 4 semaines, et historique hebdomadaire
+        (US2 de la spec 001 ; historique ajouté par US1 de la feature 002, FR-001)
+      responses:
+        "200":
+          description: >
+            Instantané de charge + historique. `donnees_suffisantes=false` si historique < 2 semaines
+            (Acceptance Scenario 3 de US2, spec 001) — le client DOIT alors afficher un message
+            d'insuffisance de données plutôt qu'une analyse ou un graphique.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChargeEntrainement"
+
+components:
+  schemas:
+    PointChargeHistorique:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        charge_aigue_7j:
+          type: number
+          nullable: true
+        charge_chronique_28j:
+          type: number
+          nullable: true
+      required: [date, charge_aigue_7j, charge_chronique_28j]
+
+    ChargeEntrainement:
+      allOf:
+        - type: object
+          description: Schéma existant (specs/001-.../contracts/api.openapi.yaml), inchangé.
+        - type: object
+          properties:
+            historique:
+              type: array
+              description: 8 points hebdomadaires les plus récents ; liste vide si donnees_suffisantes=false.
+              items:
+                $ref: "#/components/schemas/PointChargeHistorique"
+          required: [historique]
