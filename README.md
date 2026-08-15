@@ -1,4 +1,4 @@
-# appli-web-coaching
+# CyclingMetrik
 
 Application web de coaching pour cyclisme de compétition : import des séances (Garmin Connect / Strava / Nolio), analyse de la charge d'entraînement, et conseils personnalisés de récupération et de nutrition.
 

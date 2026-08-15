@@ -4,7 +4,7 @@
 No plan generated yet. Run `/speckit.plan` after `/speckit.specify` to populate this section.
 <!-- SPECKIT END -->
 
-# appli-web-coaching
+# CyclingMetrik
 
 Application web de coaching pour cyclisme de compétition : import des séances (Garmin Connect / Strava / Nolio), analyse de charge d'entraînement, et conseils personnalisés (récupération, nutrition, apports).
 

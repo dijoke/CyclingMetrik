@@ -11,7 +11,7 @@ Templates requiring updates:
 Follow-up TODOs: none
 -->
 
-# appli-web-coaching Constitution
+# CyclingMetrik Constitution
 
 ## Core Principles
 
