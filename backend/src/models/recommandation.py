@@ -39,7 +39,12 @@ class Recommandation(Base):
         PG_UUID(as_uuid=True), ForeignKey("athlete.id", ondelete="CASCADE"), nullable=False
     )
     type: Mapped[TypeRecommandation] = mapped_column(
-        Enum(TypeRecommandation, name="type_recommandation_enum"), nullable=False
+        Enum(
+            TypeRecommandation,
+            name="type_recommandation_enum",
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
+        nullable=False,
     )
     date_generation: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC), nullable=False
@@ -48,7 +53,12 @@ class Recommandation(Base):
         PG_UUID(as_uuid=True), ForeignKey("seance.id", ondelete="SET NULL"), nullable=True
     )
     statut: Mapped[StatutRecommandation] = mapped_column(
-        Enum(StatutRecommandation, name="statut_recommandation_enum"), nullable=False
+        Enum(
+            StatutRecommandation,
+            name="statut_recommandation_enum",
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
+        nullable=False,
     )
     contenu: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     motif_donnees_insuffisantes: Mapped[str | None] = mapped_column(String, nullable=True)

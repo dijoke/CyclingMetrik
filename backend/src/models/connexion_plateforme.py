@@ -34,10 +34,15 @@ class ConnexionPlateforme(Base):
         PG_UUID(as_uuid=True), ForeignKey("athlete.id", ondelete="CASCADE"), nullable=False
     )
     plateforme: Mapped[Plateforme] = mapped_column(
-        Enum(Plateforme, name="plateforme_enum"), nullable=False
+        Enum(Plateforme, name="plateforme_enum", values_callable=lambda obj: [e.value for e in obj]),
+        nullable=False,
     )
     statut: Mapped[StatutConnexion] = mapped_column(
-        Enum(StatutConnexion, name="statut_connexion_enum"),
+        Enum(
+            StatutConnexion,
+            name="statut_connexion_enum",
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
         default=StatutConnexion.ACTIF,
         nullable=False,
     )

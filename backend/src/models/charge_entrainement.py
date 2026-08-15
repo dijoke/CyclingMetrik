@@ -32,6 +32,11 @@ class ChargeEntrainement(Base):
     charge_chronique_28j: Mapped[float | None] = mapped_column(Numeric(8, 2), nullable=True)
     ratio_acwr: Mapped[float | None] = mapped_column(Numeric(5, 2), nullable=True)
     tendance: Mapped[TendanceCharge | None] = mapped_column(
-        Enum(TendanceCharge, name="tendance_charge_enum"), nullable=True
+        Enum(
+            TendanceCharge,
+            name="tendance_charge_enum",
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
+        nullable=True,
     )
     donnees_suffisantes: Mapped[bool] = mapped_column(Boolean, nullable=False)

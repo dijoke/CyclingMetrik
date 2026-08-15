@@ -48,7 +48,11 @@ class Seance(Base):
     frequence_cardiaque_moyenne: Mapped[int | None] = mapped_column(Integer, nullable=True)
     denivele_metres: Mapped[float | None] = mapped_column(Numeric(8, 2), nullable=True)
     statut_donnees: Mapped[StatutDonneesSeance] = mapped_column(
-        Enum(StatutDonneesSeance, name="statut_donnees_seance_enum"),
+        Enum(
+            StatutDonneesSeance,
+            name="statut_donnees_seance_enum",
+            values_callable=lambda obj: [e.value for e in obj],
+        ),
         default=StatutDonneesSeance.VALIDE,
         nullable=False,
     )

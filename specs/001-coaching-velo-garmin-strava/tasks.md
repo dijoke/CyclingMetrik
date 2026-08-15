@@ -154,11 +154,17 @@ description: "Task list for Coaching vélo connecté (import séances + conseils
 - [X] T059 Implement 3-month rolling retention purge job (FR-012) in `backend/src/jobs/purge_retention.py` (depends on T018, T011)
 - [X] T060 [P] Verify no plaintext OAuth token storage anywhere (code review + grep for raw token fields) — Principe II
 - [X] T061 [P] Update `README.md` with backend/frontend setup and run instructions
-- [ ] T062 Run full quickstart.md validation end-to-end (US1 → US2 → US3 → RGPD export/delete scenario)
+- [X] T062 Run full quickstart.md validation end-to-end (US1 → US2 → US3 → RGPD export/delete scenario)
 
 **Checkpoint**: Feature complete, constitution-compliant, and validated against quickstart.md.
 
-> **Note on T062**: all other tasks were verified by static/build checks — `ruff check` (backend), `tsc -b` + `eslint` + `vite build` (frontend), and a live FastAPI app import whose generated OpenAPI schema was diffed against `contracts/api.openapi.yaml` (all 11 endpoints match). The `pytest` suite (unit/contract/integration, T022-T048) requires a running PostgreSQL instance; this environment's Docker daemon has no outbound network access, so the containerized test DB could not be started and the suite has not actually been executed. Run `alembic upgrade head && pytest` against a real Postgres (see quickstart.md prerequisites) to complete T062 before merging.
+> **Note on T062**: run against a real PostgreSQL 16 container. `alembic upgrade head` applies cleanly (and `alembic downgrade base` reverses cleanly). The full `pytest` suite (30 tests: unit/contract/integration, T022-T048) passes. The backend (`uvicorn`) and frontend (`vite`) were both launched live; the API was smoke-tested with `curl` (profil, dashboard, connexions, export), seeded with realistic séance data directly in Postgres, and the resulting dashboard/historique/recommandations/connexions pages were screenshotted via headless Chromium (Playwright) with zero browser console errors.
+>
+> Two real bugs were caught and fixed during this validation, both invisible to `ruff`/`tsc`/static checks:
+> 1. **Enum value mismatch**: SQLAlchemy's `Enum()` column type defaults to storing the Python enum's *member name* (`DISPONIBLE`) rather than `.value` (`disponible`). The hand-written Alembic migration used lowercase values (matching the `CHECK` constraint and the API contract), but the ORM column definitions didn't — so any real `INSERT` via the app would have failed against a migrated DB. Fixed by adding `values_callable=lambda obj: [e.value for e in obj]` to all 6 enum columns.
+> 2. **Migration DDL bug**: manually calling `.create(op.get_bind())` on a `postgresql.ENUM(...)` and then reusing that type object in `op.create_table()` caused Postgres to attempt creating the enum type twice (`DuplicateObject`). Fixed with `create_type=False` on each column-level enum declaration.
+>
+> Also fixed: `tests/{unit,contract,integration}/` lacked `__init__.py`, causing pytest module-name collisions between same-named test files in different folders (`test_dashboard_charge.py`, `test_recommandations.py`).
 
 ---
 

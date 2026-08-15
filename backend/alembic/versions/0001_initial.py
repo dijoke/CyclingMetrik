@@ -34,11 +34,13 @@ def upgrade() -> None:
         sa.CheckConstraint("taille_cm IS NULL OR taille_cm > 0", name="ck_athlete_taille_positive"),
     )
 
+    # create_type=False : le type est créé explicitement ci-dessous ; sans ce flag,
+    # op.create_table() tente de le recréer automatiquement (DuplicateObject).
     plateforme_enum = postgresql.ENUM(
-        "garmin_connect", "strava", "nolio", name="plateforme_enum"
+        "garmin_connect", "strava", "nolio", name="plateforme_enum", create_type=False
     )
     statut_connexion_enum = postgresql.ENUM(
-        "actif", "expire", "revoque", name="statut_connexion_enum"
+        "actif", "expire", "revoque", name="statut_connexion_enum", create_type=False
     )
     plateforme_enum.create(op.get_bind())
     statut_connexion_enum.create(op.get_bind())
@@ -63,7 +65,11 @@ def upgrade() -> None:
     )
 
     statut_donnees_seance_enum = postgresql.ENUM(
-        "valide", "aberrant", "doublon_probable", name="statut_donnees_seance_enum"
+        "valide",
+        "aberrant",
+        "doublon_probable",
+        name="statut_donnees_seance_enum",
+        create_type=False,
     )
     statut_donnees_seance_enum.create(op.get_bind())
 
@@ -107,7 +113,12 @@ def upgrade() -> None:
     )
 
     tendance_charge_enum = postgresql.ENUM(
-        "progression", "surcharge", "recuperation", "stable", name="tendance_charge_enum"
+        "progression",
+        "surcharge",
+        "recuperation",
+        "stable",
+        name="tendance_charge_enum",
+        create_type=False,
     )
     tendance_charge_enum.create(op.get_bind())
 
@@ -129,10 +140,13 @@ def upgrade() -> None:
     )
 
     type_recommandation_enum = postgresql.ENUM(
-        "recuperation", "nutrition", name="type_recommandation_enum"
+        "recuperation", "nutrition", name="type_recommandation_enum", create_type=False
     )
     statut_recommandation_enum = postgresql.ENUM(
-        "disponible", "donnees_insuffisantes", name="statut_recommandation_enum"
+        "disponible",
+        "donnees_insuffisantes",
+        name="statut_recommandation_enum",
+        create_type=False,
     )
     type_recommandation_enum.create(op.get_bind())
     statut_recommandation_enum.create(op.get_bind())
