@@ -81,6 +81,42 @@ export interface AthleteProfilInput {
   contraintes_alimentaires?: string[] | null;
 }
 
+export interface StatAnnuelle {
+  annee: number;
+  distance_metres: number;
+  denivele_metres: number;
+  duree_secondes: number;
+  nb_seances: number;
+}
+
+export interface StatMensuelle {
+  mois: number;
+  distance_metres: number;
+  denivele_metres: number;
+  duree_secondes: number;
+  nb_seances: number;
+}
+
+export interface SeanceResume {
+  date_debut: string;
+  distance_metres: number | null;
+  denivele_metres: number | null;
+  duree_secondes: number;
+  puissance_moyenne_watts: number | null;
+}
+
+export interface RecordsPersonnels {
+  plus_longue_distance: SeanceResume | null;
+  plus_de_denivele: SeanceResume | null;
+  plus_longue_duree: SeanceResume | null;
+  puissance_moyenne_max: SeanceResume | null;
+}
+
+export interface ComparaisonAnnuelle {
+  annee_courante: StatAnnuelle;
+  annee_precedente: StatAnnuelle | null;
+}
+
 export const api = {
   connexions: {
     lister: () => request<ConnexionPlateforme[]>("/connexions"),
@@ -101,6 +137,13 @@ export const api = {
   },
   dashboard: {
     charge: () => request<ChargeEntrainement>("/dashboard/charge"),
+  },
+  statistiques: {
+    annuelles: () => request<StatAnnuelle[]>("/statistiques/annuelles"),
+    mensuelles: (annee: number) =>
+      request<StatMensuelle[]>(`/statistiques/annuelles/${annee}/mensuelles`),
+    records: () => request<RecordsPersonnels>("/statistiques/records"),
+    comparaisonAnnuelle: () => request<ComparaisonAnnuelle>("/statistiques/comparaison-annuelle"),
   },
   recommandations: {
     lister: (type?: TypeRecommandation) =>

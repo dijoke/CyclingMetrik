@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api import athlete, connexions, dashboard, recommandations, seances
+from src.api import athlete, connexions, dashboard, recommandations, seances, statistiques
 from src.api.middleware import configurer_gestion_erreurs
 from src.jobs import generer_recommandations, recompute_charge, sync_seances
 from src.jobs import scheduler as job_scheduler
@@ -36,3 +36,4 @@ app.include_router(seances.router)
 app.include_router(dashboard.router)
 app.include_router(recommandations.router)
 app.include_router(athlete.router)
+app.include_router(statistiques.router)

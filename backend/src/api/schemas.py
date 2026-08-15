@@ -84,6 +84,52 @@ class AthleteProfilInput(BaseModel):
     contraintes_alimentaires: list[str] | None = None
 
 
+class StatAnnuelleOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    annee: int
+    distance_metres: float
+    denivele_metres: float
+    duree_secondes: int
+    nb_seances: int
+
+
+class StatMensuelleOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    mois: int
+    distance_metres: float
+    denivele_metres: float
+    duree_secondes: int
+    nb_seances: int
+
+
+class SeanceResumeOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    date_debut: datetime
+    distance_metres: float | None
+    denivele_metres: float | None
+    duree_secondes: int
+    puissance_moyenne_watts: float | None
+
+
+class RecordsPersonnelsOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    plus_longue_distance: SeanceResumeOut | None
+    plus_de_denivele: SeanceResumeOut | None
+    plus_longue_duree: SeanceResumeOut | None
+    puissance_moyenne_max: SeanceResumeOut | None
+
+
+class ComparaisonAnnuelleOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    annee_courante: StatAnnuelleOut
+    annee_precedente: StatAnnuelleOut | None
+
+
 class AutorisationOut(BaseModel):
     url_autorisation: str
 
