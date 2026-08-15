@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -19,6 +20,18 @@ def _charger(nom: str) -> dict:
 
 def _reponse(status_code: int, data: dict | list) -> httpx.Response:
     return httpx.Response(status_code, json=data, request=httpx.Request("GET", "http://x"))
+
+
+def _activite(id_externe: int) -> dict:
+    return {
+        "id": id_externe,
+        "start_date": "2026-01-01T07:00:00Z",
+        "elapsed_time": 3600,
+        "distance": 30000.0,
+        "average_watts": 200.0,
+        "average_heartrate": 140.0,
+        "total_elevation_gain": 400.0,
+    }
 
 
 def test_echanger_code_normalise_les_tokens(monkeypatch):
@@ -58,3 +71,78 @@ def test_plateforme_indisponible_leve_erreur_dediee(monkeypatch):
 
     with pytest.raises(PlateformeIndisponibleError):
         StravaConnecteur().recuperer_seances(TokensOAuth("t", None, None), datetime.now(UTC))
+
+
+def test_recuperer_seances_pagine_sur_plusieurs_pages(monkeypatch):
+    page_1 = [_activite(i) for i in range(100)]
+    page_2 = [_activite(100)]
+    appels: list[int] = []
+
+    def fake_get(url, headers=None, params=None, timeout=None):
+        appels.append(params["page"])
+        return _reponse(200, page_1 if params["page"] == 1 else page_2)
+
+    monkeypatch.setattr(httpx, "get", fake_get)
+
+    seances = StravaConnecteur().recuperer_seances(TokensOAuth("t", None, None), None)
+
+    assert len(seances) == 101
+    assert appels == [1, 2]
+
+
+def test_recuperer_seances_sans_borne_temporelle_omet_after(monkeypatch):
+    params_captures = {}
+
+    def fake_get(url, headers=None, params=None, timeout=None):
+        params_captures.update(params)
+        return _reponse(200, [])
+
+    monkeypatch.setattr(httpx, "get", fake_get)
+
+    StravaConnecteur().recuperer_seances(TokensOAuth("t", None, None), None)
+
+    assert "after" not in params_captures
+
+
+def test_recuperer_seances_retente_automatiquement_sur_limite_de_debit(monkeypatch):
+    appels = {"n": 0}
+
+    def fake_get(url, headers=None, params=None, timeout=None):
+        appels["n"] += 1
+        if appels["n"] < 3:
+            return _reponse(429, {})
+        return _reponse(200, [])
+
+    monkeypatch.setattr(httpx, "get", fake_get)
+    monkeypatch.setattr(time, "sleep", lambda secondes: None)
+
+    seances = StravaConnecteur().recuperer_seances(TokensOAuth("t", None, None), datetime.now(UTC))
+
+    assert seances == []
+    assert appels["n"] == 3
+
+
+def test_recuperer_seances_leve_erreur_si_limite_de_debit_persiste(monkeypatch):
+    monkeypatch.setattr(httpx, "get", lambda *a, **k: _reponse(429, {}))
+    monkeypatch.setattr(time, "sleep", lambda secondes: None)
+
+    with pytest.raises(PlateformeIndisponibleError):
+        StravaConnecteur().recuperer_seances(TokensOAuth("t", None, None), datetime.now(UTC))
+
+
+def test_recuperer_seances_retente_sur_timeout_transitoire(monkeypatch):
+    appels = {"n": 0}
+
+    def fake_get(url, headers=None, params=None, timeout=None):
+        appels["n"] += 1
+        if appels["n"] < 2:
+            raise httpx.ReadTimeout("timed out")
+        return _reponse(200, [])
+
+    monkeypatch.setattr(httpx, "get", fake_get)
+    monkeypatch.setattr(time, "sleep", lambda secondes: None)
+
+    seances = StravaConnecteur().recuperer_seances(TokensOAuth("t", None, None), datetime.now(UTC))
+
+    assert seances == []
+    assert appels["n"] == 2

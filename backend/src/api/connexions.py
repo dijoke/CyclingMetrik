@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from src.api.schemas import AutorisationOut, CallbackInput, ConnexionPlateformeOut
+from src.config import get_settings
 from src.db import get_db
 from src.integrations.base import TokenInvalideError
 from src.integrations.garmin.connecteur import GarminConnecteur
@@ -24,7 +25,11 @@ CONNECTEURS = {
     Plateforme.NOLIO: NolioConnecteur(),
 }
 
-REDIRECT_URI_BASE = "http://localhost:8000/api/connexions"
+def _redirect_uri(plateforme: Plateforme) -> str:
+    """Cible du redirect OAuth : une route du frontend (SPA), pas le backend — c'est le
+    navigateur de l'athlète qui reçoit le redirect de la plateforme source avec le `code`,
+    la SPA le récupère puis appelle POST /api/connexions/{plateforme}/callback elle-même."""
+    return f"{get_settings().frontend_base_url}/#/connexions/{plateforme.value}/callback"
 
 
 def _connexion_existante(db: Session, athlete_id, plateforme: Plateforme) -> ConnexionPlateforme | None:
@@ -41,17 +46,17 @@ def lister_connexions(db: Session = Depends(get_db)):
 def autoriser(plateforme: Plateforme):
     connecteur = CONNECTEURS[plateforme]
     state = secrets.token_urlsafe(16)
-    redirect_uri = f"{REDIRECT_URI_BASE}/{plateforme.value}/callback"
-    return AutorisationOut(url_autorisation=connecteur.url_autorisation(redirect_uri, state))
+    return AutorisationOut(
+        url_autorisation=connecteur.url_autorisation(_redirect_uri(plateforme), state)
+    )
 
 
 @router.post("/{plateforme}/callback", response_model=ConnexionPlateformeOut, status_code=201)
 def callback(plateforme: Plateforme, payload: CallbackInput, db: Session = Depends(get_db)):
     athlete = obtenir_ou_creer_athlete(db)
     connecteur = CONNECTEURS[plateforme]
-    redirect_uri = f"{REDIRECT_URI_BASE}/{plateforme.value}/callback"
     try:
-        tokens = connecteur.echanger_code(payload.code, redirect_uri)
+        tokens = connecteur.echanger_code(payload.code, _redirect_uri(plateforme))
     except TokenInvalideError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 

@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.api import athlete, connexions, dashboard, recommandations, seances
 from src.api.middleware import configurer_gestion_erreurs
-from src.jobs import generer_recommandations, purge_retention, recompute_charge, sync_seances
+from src.jobs import generer_recommandations, recompute_charge, sync_seances
 from src.jobs import scheduler as job_scheduler
 
 
@@ -16,7 +16,6 @@ async def lifespan(app: FastAPI):
     sync_seances.enregistrer_job(job_scheduler.scheduler)
     recompute_charge.enregistrer_job(job_scheduler.scheduler)
     generer_recommandations.enregistrer_job(job_scheduler.scheduler)
-    purge_retention.enregistrer_job(job_scheduler.scheduler)
     job_scheduler.demarrer()
     yield
     job_scheduler.arreter()

@@ -5,14 +5,14 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy.orm import Session
 
 from src.integrations.base import PlateformeConnecteur, SeanceBrute, TokensOAuth
-from src.models.connexion_plateforme import ConnexionPlateforme
+from src.models.connexion_plateforme import ConnexionPlateforme, Plateforme
 from src.models.seance import Seance, StatutDonneesSeance
 from src.security.token_crypto import dechiffrer
 
 FC_MIN_PLAUSIBLE = 30
 FC_MAX_PLAUSIBLE = 240
 VITESSE_MAX_PLAUSIBLE_MS = 25  # ~90 km/h, généreux pour vélo + forte descente
-IMPORT_INITIAL_JOURS = 30  # SC-001 : import des 30 derniers jours à la connexion
+IMPORT_INITIAL_JOURS = 30  # 1ère synchronisation Garmin/Nolio (Strava importe tout, FR-001/004)
 
 
 def tokens_depuis_connexion(connexion: ConnexionPlateforme) -> TokensOAuth:
@@ -43,9 +43,13 @@ def importer_seances(
     connexion: ConnexionPlateforme,
     connecteur: PlateformeConnecteur,
 ) -> list[Seance]:
-    depuis = connexion.date_derniere_synchronisation or (
-        datetime.now(UTC) - timedelta(days=IMPORT_INITIAL_JOURS)
-    )
+    if connexion.date_derniere_synchronisation is not None:
+        depuis: datetime | None = connexion.date_derniere_synchronisation
+    elif connexion.plateforme == Plateforme.STRAVA:
+        depuis = None  # 1ère synchronisation Strava : historique complet (FR-001)
+    else:
+        depuis = datetime.now(UTC) - timedelta(days=IMPORT_INITIAL_JOURS)
+
     tokens = tokens_depuis_connexion(connexion)
     seances_brutes = connecteur.recuperer_seances(tokens, depuis)
 
