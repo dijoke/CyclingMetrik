@@ -1,10 +1,12 @@
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useTheme } from "../hooks/useTheme";
 
-// Recharts passe fill comme attribut SVG brut, qui ne résout pas var(...) — cet hex
-// duplique donc volontairement --sequential-500 de tokens.css.
-const COULEUR_BARRE = "#256abf";
-const COULEUR_GRIDLINE = "#e1e0d9";
-const COULEUR_MUTED = "#898781";
+// Recharts passe fill comme attribut SVG brut, qui ne résout pas var(...) — ces hex dupliquent
+// donc volontairement tokens.css, avec une paire claire/sombre (research.md Decision 2, feature 006).
+const COULEURS = {
+  light: { barre: "#256abf", gridline: "#e1e0d9", muted: "#898781" },
+  dark: { barre: "#3987e5", gridline: "#2c2c2a", muted: "#898781" },
+};
 
 interface PointVolume {
   etiquette: string;
@@ -12,15 +14,18 @@ interface PointVolume {
 }
 
 export default function VolumeBarChart({ donnees }: { donnees: PointVolume[] }) {
+  const { theme } = useTheme();
+  const couleurs = COULEURS[theme];
+
   return (
     <div style={{ height: 240 }}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={donnees}>
-          <CartesianGrid strokeDasharray="3 3" stroke={COULEUR_GRIDLINE} vertical={false} />
-          <XAxis dataKey="etiquette" stroke={COULEUR_MUTED} fontSize={12} />
-          <YAxis stroke={COULEUR_MUTED} fontSize={12} unit=" km" />
+          <CartesianGrid strokeDasharray="3 3" stroke={couleurs.gridline} vertical={false} />
+          <XAxis dataKey="etiquette" stroke={couleurs.muted} fontSize={12} />
+          <YAxis stroke={couleurs.muted} fontSize={12} unit=" km" />
           <Tooltip formatter={(valeur: number) => [`${valeur.toFixed(0)} km`, "Distance"]} />
-          <Bar dataKey="distanceKm" fill={COULEUR_BARRE} radius={[4, 4, 0, 0]} />
+          <Bar dataKey="distanceKm" fill={couleurs.barre} radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
