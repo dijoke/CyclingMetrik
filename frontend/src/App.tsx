@@ -5,10 +5,12 @@ import Dashboard from "./pages/Dashboard";
 import HistoriqueSeances from "./pages/HistoriqueSeances";
 import Profil from "./pages/Profil";
 import Recommandations from "./pages/Recommandations";
+import Statistiques from "./pages/Statistiques";
 
 const liens = [
   { to: "/", label: "Tableau de bord" },
   { to: "/seances", label: "Historique" },
+  { to: "/statistiques", label: "Statistiques" },
   { to: "/recommandations", label: "Recommandations" },
   { to: "/connexions", label: "Connexions" },
   { to: "/profil", label: "Profil" },
@@ -71,6 +73,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/seances" element={<HistoriqueSeances />} />
+            <Route path="/statistiques" element={<Statistiques />} />
             <Route path="/recommandations" element={<Recommandations />} />
             <Route path="/connexions" element={<Connexions />} />
             <Route path="/connexions/:plateforme/callback" element={<ConnexionCallback />} />
