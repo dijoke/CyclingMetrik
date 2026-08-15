@@ -27,6 +27,7 @@ services:
       - ./backend/.env
     environment:
       DATABASE_URL: postgresql+psycopg://coaching:coaching@db:5432/coaching
+      FRONTEND_BASE_URL: http://192.168.1.199:8010
     ports:
       - "8001:8000"
     depends_on:

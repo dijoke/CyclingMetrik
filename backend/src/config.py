@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     strava_client_secret: str = ""
     nolio_client_id: str = ""
     nolio_client_secret: str = ""
+    frontend_base_url: str = "http://localhost:5173"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

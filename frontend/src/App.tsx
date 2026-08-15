@@ -1,4 +1,5 @@
 import { HashRouter as Router, NavLink, Route, Routes } from "react-router-dom";
+import ConnexionCallback from "./pages/ConnexionCallback";
 import Connexions from "./pages/Connexions";
 import Dashboard from "./pages/Dashboard";
 import HistoriqueSeances from "./pages/HistoriqueSeances";
@@ -72,6 +73,7 @@ export default function App() {
             <Route path="/seances" element={<HistoriqueSeances />} />
             <Route path="/recommandations" element={<Recommandations />} />
             <Route path="/connexions" element={<Connexions />} />
+            <Route path="/connexions/:plateforme/callback" element={<ConnexionCallback />} />
             <Route path="/profil" element={<Profil />} />
           </Routes>
         </main>
